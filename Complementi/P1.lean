@@ -49,6 +49,7 @@ lemma first_category₂_of_first_category₁ {s : Set X} (h : first_category₁ 
   simp only [Function.comp_apply, close]
   exact λ i => subset_closure
 
+-- Exercise 1.A
 theorem first_category₁_iff_first_category₂ (s : Set X) : first_category₁ s ↔ first_category₂ s :=
   ⟨first_category₂_of_first_category₁, first_category₁_of_first_category₂⟩
 
@@ -56,6 +57,7 @@ theorem first_category₁_iff_first_category₂ (s : Set X) : first_category₁ 
 def first_category :=
   { x : Set X // first_category₂ x }
 
+-- Exercise 1.B
 theorem first_category_reals_parts_continuum_card : Cardinal.mk (first_category (X := ℝ)) = 2 ^ Cardinal.continuum := by
   apply le_antisymm
   . let f (x : first_category) : Set ℝ := x.val
@@ -72,10 +74,11 @@ theorem first_category_reals_parts_continuum_card : Cardinal.mk (first_category 
       simp only [Function.Injective, f]
       intro x₁ x₂ h
       apply Subtype.val_injective
-      exact congr_arg (λ s => s.1) h
+      exact congr_arg (·.1) h
     have le_powerset := Cardinal.mk_le_of_injective f_inj
     simp_all
 
+-- Exercise 1.C
 theorem first_category_not_union_of_closed_sets_with_empty_interior :
     ∃ s : first_category (X := ℝ), ∀ (f : ℕ → { x : Set ℝ // IsClosed x ∧ interior x = ∅}),
     s.val ≠ ⋃ (i : ℕ), f i := by
