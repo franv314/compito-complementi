@@ -1,10 +1,4 @@
-import Mathlib.Data.Real.Cardinality
-import Mathlib.Logic.Function.Defs
-import Mathlib.SetTheory.Cardinal.Defs
-import Mathlib.SetTheory.Cardinal.Continuum
 import Mathlib.Topology.GDelta.Basic
-import Mathlib.Topology.Instances.CantorSet
-import Mathlib.Topology.MetricSpace.Basic
 
 import Complementi.CantorSet
 import Complementi.EuclideanTopology

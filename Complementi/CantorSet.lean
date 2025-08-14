@@ -1,11 +1,8 @@
-import Mathlib.Analysis.SpecialFunctions.Pow.Real
-import Mathlib.Analysis.SpecificLimits.Basic
+import Mathlib.Analysis.Normed.Group.InfiniteSum
+import Mathlib.Analysis.RCLike.Basic
 import Mathlib.Data.Int.Log
 import Mathlib.Data.Real.Cardinality
-import Mathlib.SetTheory.Cardinal.Continuum
 import Mathlib.Tactic.Rify
-import Mathlib.Topology.Algebra.InfiniteSum.Defs
-import Mathlib.Topology.Algebra.InfiniteSum.Ring
 import Mathlib.Topology.Instances.CantorSet
 
 variable (χ : ℕ → ({0, 2} : Set ℤ))

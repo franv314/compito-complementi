@@ -1,11 +1,4 @@
-import Mathlib.SetTheory.Cardinal.Defs
-import Mathlib.SetTheory.Cardinal.Continuum
-import Mathlib.Data.Set.Operations
 import Mathlib.Data.Real.Cardinality
-import Mathlib.Topology.Bases
-import Mathlib.Topology.Defs.Basic
-import Mathlib.Topology.MetricSpace.Basic
-import Mathlib.Topology.MetricSpace.ProperSpace.Real
 
 set_option maxHeartbeats 0
 
