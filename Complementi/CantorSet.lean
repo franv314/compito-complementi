@@ -5,6 +5,8 @@ import Mathlib.Data.Real.Cardinality
 import Mathlib.Tactic.Rify
 import Mathlib.Topology.Instances.CantorSet
 
+open Cardinal
+
 variable (χ : ℕ → ({0, 2} : Set ℤ))
 
 lemma isComplete_cantorSet : IsComplete cantorSet :=
@@ -187,7 +189,7 @@ lemma sum_of_cantorSet_series_injective : Function.Injective cantorSet_series_su
   exact Function.injective_iff_pairwise_ne.mpr diff
 
 @[simp]
-theorem cantor_set_continuum_card : Cardinal.mk cantorSet = Cardinal.continuum := by
+theorem cantor_set_continuum_card : #cantorSet = continuum := by
   apply le_antisymm
   · rw [←Cardinal.mk_real]
     exact Cardinal.mk_set_le cantorSet

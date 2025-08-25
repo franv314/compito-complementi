@@ -2,6 +2,7 @@ import Mathlib.Analysis.SpecialFunctions.Trigonometric.ArctanDeriv
 import Mathlib.Topology.MetricSpace.UniformConvergence
 
 open Filter
+open Real
 open Topology
 
 def prop₁ {E : Type} [MetricSpace E] (fₕ : ℕ → E → ℝ) (f : E → ℝ) :=
@@ -198,7 +199,7 @@ theorem not_prop₁_of_prop₂ :
   rw [not_forall]; use ℝ
   rw [not_forall]; use Real.metricSpace
   rw [not_forall]; use (λ n => g ∘ h n)
-  rw [not_forall]; use (λ x => Real.pi / 2)
+  rw [not_forall]; use (λ x => π / 2)
   simp only [and_imp, Classical.not_imp]
   refine ⟨?_, ?_, continuous_const, ?_⟩
   . have eq_lip (i : ℕ) := lipschitzWith_of_nnnorm_deriv_le (C := 1) (f := g ∘ h i)
@@ -211,23 +212,23 @@ theorem not_prop₁_of_prop₂ :
         have : deriv (Real.arctan ∘ fun x ↦ ↑i + x) x = _ := deriv_arctan (hh i x)
         simp_all [g, h]
     have eq_cont := (LipschitzWith.uniformEquicontinuous (g ∘ h ·) 1 eq_lip).equicontinuous
-    have : prop₃ (λ n => g ∘ h n) (λ x => Real.pi / 2) := by
+    have : prop₃ (λ n => g ∘ h n) (λ x => π / 2) := by
       intro x
       have ℓ₁ : Tendsto (λ (n : ℕ) => h n x) atTop atTop := by
         simp only [h]
         exact tendsto_atTop_atTop_of_monotone
           (λ _ _ _ => by simp_all)
           (λ b => ⟨⌈b - x⌉₊, tsub_le_iff_right.mp (Nat.le_ceil _)⟩)
-      have ℓ₂ : Tendsto g atTop (𝓝 (Real.pi / 2)) := by
-        have : Tendsto Real.arctan atTop (𝓝 (Real.pi / 2)) := Real.tendsto_arctan_atTop.mono_right nhdsWithin_le_nhds
+      have ℓ₂ : Tendsto g atTop (𝓝 (π / 2)) := by
+        have : Tendsto Real.arctan atTop (𝓝 (π / 2)) := Real.tendsto_arctan_atTop.mono_right nhdsWithin_le_nhds
         simp_all [g]
       exact Tendsto.comp ℓ₂ ℓ₁
-    exact prop₂_of_prop₃_of_equicontinuity (λ n => g ∘ h n) (λ x => Real.pi / 2) continuous_const this eq_cont
+    exact prop₂_of_prop₃_of_equicontinuity (λ n => g ∘ h n) (λ x => π / 2) continuous_const this eq_cont
   . intro n
     simp only [g, h]
     exact Continuous.comp Real.continuous_arctan (Continuous.add continuous_const continuous_id)
   . rw [prop₁, Metric.tendstoUniformly_iff, not_forall]
-    use Real.pi / 2
+    use π / 2
     rw [Classical.not_imp, eventually_atTop, not_exists]
     refine ⟨Real.pi_div_two_pos, ?_⟩
     intro b

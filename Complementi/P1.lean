@@ -3,6 +3,8 @@ import Mathlib.Topology.GDelta.Basic
 import Complementi.CantorSet
 import Complementi.EuclideanTopology
 
+open Cardinal
+
 variable {X : Type} [TopologicalSpace X]
 
 def first_category₁ (s : Set X) :=
@@ -52,7 +54,7 @@ def first_category :=
   { x : Set X // first_category₂ x }
 
 -- Exercise 1.B
-theorem first_category_reals_parts_continuum_card : Cardinal.mk (first_category (X := ℝ)) = 2 ^ Cardinal.continuum := by
+theorem first_category_reals_parts_continuum_card : Cardinal.mk (first_category (X := ℝ)) = 2 ^ 𝔠 := by
   apply le_antisymm
   . let f (x : first_category) : Set ℝ := x.val
     have f_inj : Function.Injective f :=
@@ -82,10 +84,10 @@ theorem first_category_not_union_of_closed_sets_with_empty_interior :
     Subtype.mk (⋃ (i : ℕ), (f i).val) (by use f)
   have f_inj : Function.Injective f :=
     (Function.LeftInverse.injective (g := g)) (λ x => by simp [g, (hf x).symm])
-  have card_bound : Cardinal.mk { x : Set ℝ // IsClosed x ∧ interior x = ∅ } ≤ Cardinal.continuum := calc
-    _ ≤ Cardinal.mk { x : Set ℝ // IsClosed x } := by
+  have card_bound : #{ x : Set ℝ // IsClosed x ∧ interior x = ∅ } ≤ 𝔠 := calc
+    _ ≤ #{ x : Set ℝ // IsClosed x } := by
       let f : { x : Set ℝ // IsClosed x ∧ interior x = ∅ } → { x : Set ℝ // IsClosed x } :=
-        λ x => Subtype.mk x.val x.prop.left
+        λ x => ⟨x.val, x.prop.left⟩
       have f_inj : Function.Injective f := by
         intro a b h
         simp only [Subtype.mk.injEq, f] at h
@@ -95,8 +97,8 @@ theorem first_category_not_union_of_closed_sets_with_empty_interior :
   have few_first_category := Cardinal.mk_le_of_injective f_inj
   rw [first_category_reals_parts_continuum_card] at few_first_category
   simp only [Cardinal.mk_pi, Cardinal.prod_const, Cardinal.lift_id, Cardinal.mk_eq_aleph0] at few_first_category
-  have cont : 2 ^ Cardinal.continuum ≤ Cardinal.continuum := calc
+  have cont : 2 ^ 𝔠 ≤ 𝔠 := calc
     _ ≤ _ := few_first_category
     _ ≤ _ := Cardinal.power_le_power_right card_bound
     _ = _ := by simp
-  apply lt_iff_not_ge.mp (Cardinal.cantor Cardinal.continuum) cont
+  apply lt_iff_not_ge.mp (cantor 𝔠) cont
