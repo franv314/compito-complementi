@@ -1,14 +1,16 @@
 import Mathlib.Logic.ExistsUnique
 import Mathlib.Analysis.SpecialFunctions.Trigonometric.Arctan
 import Mathlib.Data.Complex.Trigonometric
+import Mathlib.Data.Real.Pi.Bounds
+import Mathlib.Analysis.ODE.Gronwall
+import Mathlib.Analysis.Calculus.Taylor
 
 import Complementi.ODE
 
 set_option maxHeartbeats 0
 
 open Real
-
-postfix:max "²" => (· ^ 2)
+open Topology
 
 @[simp]
 noncomputable def f (x y : ℝ) := Real.arctan (x + y) + Real.sin y
@@ -65,6 +67,7 @@ lemma bound_ge_zero : π / 2 + 1 ≥ 0 :=
 lemma bound_gt_zero : π / 2 + 1 > 0 :=
   add_pos (div_pos Real.pi_pos zero_lt_two) zero_lt_one
 
+-- Exercise 4.A
 theorem global_uniqueness : ∃! y : ℝ → ℝ, (∀ x : ℝ, HasDerivAt y (f x (y x)) x) ∧ y 0 = 0 := by
   have ⟨yₘ, hyₘ⟩ := top_local_solutions f cont_diff_f ⟨2, lipschitz_f⟩ 0 0
   use yₘ.val.2
@@ -226,3 +229,117 @@ theorem global_uniqueness : ∃! y : ℝ → ℝ, (∀ x : ℝ, HasDerivAt y (f 
       (λ t ht => ⟨yₘ.prop.2.1 t (by simp_all), trivial⟩)
       (by simp_all [yₘ.prop])
     simp_all
+
+-- Exercise 4.B
+theorem f_gt_zero (y : ℝ → ℝ) (hy : ∀ x : ℝ, HasDerivAt y (f x (y x)) x) (hi : y 0 = 0) : ∀ x > 0, y x > 0 := by
+  have deriv_pos : ∀ x > 0, ∀ y > 0, f x y > 0 := λ x hx y hy => calc
+    _ > Real.arctan y + Real.sin y := by
+      simp [f, arctan_strictMono (by linarith : x + y > y)]
+    _ ≥ _ := by
+      apply (le_or_gt y π).elim
+      . intro h
+        rw [←AddZeroClass.zero_add 0]
+        gcongr
+        . have := arctan_strictMono hy
+          simp_all
+          linarith
+        . exact sin_nonneg_of_nonneg_of_le_pi (le_of_lt hy) h
+      . intro h
+        rw [ge_iff_le, ←neg_le_iff_add_nonneg]
+        refine le_trans (by simp [neg_le, Real.neg_one_le_sin] : -sin y ≤ 1) (le_of_lt ?_)
+        refine lt_trans (by linarith [Real.pi_gt_three] : π / 3 > 1) ?_
+        have := arctan_strictMono (lt_trans (lt_trans ((sqrt_lt' zero_lt_three).mpr (by norm_num)) Real.pi_gt_three) h : y > √3)
+        have := Real.arctan_tan (x := π / 3) (by linarith [pi_pos]) (by linarith [pi_pos])
+        simp_all
+  have eq₁ : y´ 0 = 0 := by
+    have := (hy 0).deriv
+    simp_all
+  have eq : y´´ = (λ x => (1 + y´ x) / (1 + (x + y x)²) + cos (y x) * y´ x) := by
+    have eq : y´ = λ x => f x (y x) := funext λ x => (hy x).deriv
+    simp only [eq, f]
+    have : (λ x => arctan (x + y x) + sin (y x))´ = (λ x => (1 + y´ x) / (1 + (x + y x)²) + cos (y x) * y´ x) := funext λ x => by
+      have eq := deriv_fun_add (f := λ x => arctan (x + y x)) (g := λ x => sin (y x)) (x := x)
+        (DifferentiableAt.arctan (DifferentiableAt.add differentiableAt_id (hy x).differentiableAt))
+        (DifferentiableAt.sin (hy x).differentiableAt)
+      rw [eq]
+      congr
+      . have eq₁ : (λ x => arctan (x + y x))´ x = _ :=
+          _root_.deriv_arctan (DifferentiableAt.add differentiableAt_id (hy x).differentiableAt)
+        have eq₂ := deriv_fun_add (f := λ x => x) (g := λ x => y x) (x := x) differentiableAt_id (hy x).differentiableAt
+        rw [eq₁, eq₂]
+        ring_nf
+        field_simp
+      . exact deriv_sin (hy x).differentiableAt
+    simp_all
+  have eq₂ : y´´ 0 = 1 := by simp_all
+  have contdiff : ContDiff ℝ (1 + 1) y := by
+    have diff : Differentiable ℝ (λ x => f x (y x)) := Differentiable.add
+      (Differentiable.arctan (Differentiable.add differentiable_id (λ x => (hy x).differentiableAt)))
+      (Differentiable.sin (λ x => (hy x).differentiableAt))
+    refine contDiff_succ_iff_deriv.mpr ⟨λ x => (hy x).differentiableAt, by simp, ?_⟩
+    refine contDiff_one_iff_deriv.mpr ⟨?_, ?_⟩
+    . rwa [funext λ x => (hy x).deriv]
+    . rw [eq]
+      exact Continuous.add
+        (Continuous.div₀
+          (Continuous.add continuous_const (by rw [funext λ x => (hy x).deriv]; exact diff.continuous))
+          (Continuous.add continuous_const (Continuous.pow (Continuous.add continuous_id (continuous_iff_continuousAt.mpr (λ x => (hy x).continuousAt))) _))
+          (λ x => ne_of_gt (by linarith [sq_nonneg (x + y x)])))
+        (Continuous.mul
+          (Continuous.comp Real.continuous_cos (continuous_iff_continuousAt.mpr (λ x => (hy x).continuousAt)) : Continuous (cos ∘ y))
+          (by rw [funext λ x => (hy x).deriv]; exact diff.continuous))
+  rw [(by norm_cast : (1 : WithTop ℕ∞) + 1 = (2 : ℕ))] at contdiff
+  have taylor := taylor_isLittleO (x₀ := 0) convex_univ trivial contdiff.contDiffOn
+  simp [iteratedDerivWithin_succ] at taylor
+  conv at taylor in iteratedDerivWithin _ _ _ =>
+    rw [(funext (by simp) : iteratedDerivWithin 1 y Set.univ = λ x => iteratedDerivWithin 1 y Set.univ x),
+        funext (λ x => iteratedDerivWithin_one (x := x))]
+  simp [eq₁, eq₂, hi, Asymptotics.IsLittleO_def] at taylor
+  norm_num at taylor
+  have ⟨U', hU'⟩ := eventually_nhds_iff.mp (Asymptotics.isBigOWith_iff.mp (taylor (by norm_num : (0 : ℝ) < 1 / 4)))
+  let U := U' ∩ Set.Ioi 0
+  have gt : ∀ x ∈ U, y x > 0 := λ x hx => by
+    have diseq := hU'.1 x (Set.mem_of_mem_inter_left hx)
+    simp [abs_le] at diseq
+    have : y x ≥ (1 / 4) * x² := by linarith
+    have : x² > 0 := sq_pos_iff.mpr (ne_of_lt (Set.mem_of_mem_inter_right hx)).symm
+    linarith
+  by_contra! abs
+  have ⟨x₀, hx₀⟩ := abs
+  have ⟨ε, hε⟩ := Metric.isOpen_iff.mp hU'.2.1 0 hU'.2.2
+  have closed_preimage := IsClosed.preimage (t := Set.Iic 0) (continuous_iff_continuousAt.mpr (λ x => (hy x).continuousAt)) isClosed_Iic
+  have closed : IsClosed ((y ⁻¹' Set.Iic 0) ∩ (Set.Ici ε)) := IsClosed.inter closed_preimage isClosed_Ici
+  have nonempty : ((y ⁻¹' Set.Iic 0) ∩ (Set.Ici ε)).Nonempty := by
+    use x₀
+    refine Set.mem_inter (by simp_all) ?_
+    by_contra abs
+    rw [Set.mem_Ici, not_le] at abs
+    have ins : x₀ ∈ U := Set.mem_inter (hε.2 (by simp [abs_lt]; split_ands; repeat linarith : x₀ ∈ _)) (by simp_all)
+    have := gt _ ins
+    linarith
+  let x₁ := sInf ((y ⁻¹' Set.Iic 0) ∩ (Set.Ici ε))
+  have inf_mem : x₁ ∈ _ := IsClosed.csInf_mem closed nonempty ⟨0, λ x hx => by simp_all; linarith⟩
+  have mem_gt_zero : ∀ x ∈ ((y ⁻¹' Set.Iic 0) ∩ (Set.Ici ε)), x > 0 := λ x hx => by
+    have := Set.mem_of_mem_inter_right hx
+    simp_all
+    linarith
+  have mem_nonpos_y : ∀ x ∈ ((y ⁻¹' Set.Iic 0) ∩ (Set.Ici ε)), y x ≤ 0 := λ x hx => by
+    have := Set.mem_of_mem_inter_left hx
+    simp_all
+  have ⟨x₂, hx₂⟩ := exists_deriv_eq_slope y
+    (mem_gt_zero _ inf_mem)
+    (λ x hx => (hy x).continuousAt.continuousWithinAt)
+    (λ x hx => (hy x).differentiableAt.differentiableWithinAt)
+  simp only [Set.mem_Ioo, hi, sub_zero] at hx₂
+  have : y´ x₂ ≤ 0 := by
+    rw [hx₂.2]
+    exact div_nonpos_iff.mpr (Or.inr ⟨mem_nonpos_y _ inf_mem, le_of_lt (mem_gt_zero _ inf_mem)⟩)
+  have not_mem := notMem_of_lt_csInf hx₂.1.2 ⟨0, λ x hx => by simp_all; linarith⟩
+  rw [Set.mem_inter_iff, not_and_or] at not_mem
+  have y_pos : y x₂ > 0 := not_mem.elim
+    (λ h => by simp_all)
+    (λ h => gt _ (Set.mem_inter (hε.2 (by simp_all [abs_lt]; linarith)) (by simp_all)))
+  have : y´ x₂ > 0 := by
+    rw [(hy x₂).deriv]
+    exact deriv_pos _ hx₂.1.1 _ y_pos
+  linarith

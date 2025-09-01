@@ -1,9 +1,9 @@
 import Mathlib.Analysis.ODE.PicardLindelof
 import Mathlib.Analysis.ODE.Gronwall
 
-set_option maxHeartbeats 0
+import Complementi.Notation
 
-postfix:max "´" => deriv
+set_option maxHeartbeats 0
 
 variable (f : ℝ → ℝ → ℝ) (hf : ContDiff ℝ 1 f.uncurry) (hl : ∃ K : NNReal, ∀ t : ℝ, LipschitzWith K (f t))
 

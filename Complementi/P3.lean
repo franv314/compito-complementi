@@ -1,14 +1,13 @@
 import Mathlib.Analysis.Calculus.Deriv.Pow
 import Mathlib.Analysis.Calculus.LHopital
 
+import Complementi.Notation
+
 open Filter
 open Topology
 
 variable (a b : ℝ) (hab : a ≤ b)
 variable (f : ℝ → ℝ) (hf : ContinuousOn f (Set.Icc a b))
-
-postfix:max "´" => deriv
-postfix:max "²" => (· ^ 2)
 
 @[simp]
 def twice_differentiable :=
